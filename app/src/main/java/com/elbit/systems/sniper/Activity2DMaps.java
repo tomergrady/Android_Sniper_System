@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentActivity;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 
@@ -15,12 +16,13 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,6 +30,7 @@ import com.google.firebase.database.DatabaseReference;
 
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -37,16 +40,19 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+
 public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallback, LocationListener, GoogleMap.OnMarkerClickListener {
 
     // =============================================================================================
     // Firebase Data Members
     // =============================================================================================
-    private CFirebaseUtil   m_cFirebaseUtil                             = null;
+    private CFirebaseUtil   m_cFirebaseUtil                            = null;
     private DatabaseReference  m_cDatabaseCurrentPlayerStateReference  = null;
-    private ChildEventListener m_cChildEventListener                   = null;
+    private DatabaseReference  m_cDatabaseEventsReference              = null;
+    private ChildEventListener m_cCurrentPlayersListener               = null;
+    private ChildEventListener m_cEventsListener                       = null;
     private int m_nLastPlayerID                                        = -1;
-
+    private static final int nIOSPlayerID = 999;
     // =============================================================================================
     // Internal Marker Collections
     // =============================================================================================
@@ -60,10 +66,6 @@ public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallba
     private static final long           UPDATE_INTERVAL_IN_MILLISECONDS = 1000;
     private static Boolean              m_bMapReady                     = false;
     private static GoogleMap            m_cGoogleMap                    = null;
-    private static MarkerOptions        m_cMarkerRedDestroyed          = null;
-    private static MarkerOptions        m_cMarkerBlueAlive              = null;
-    private static MarkerOptions        m_cMarkerBlueDestroyed          = null;
-    private static MarkerOptions        m_cMarkerRedAlive               = null;
     private static Marker               m_cGoogleMarker                 = null;
 
     // =============================================================================================
@@ -88,7 +90,6 @@ public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallba
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-
         try
         {
             setContentView(R.layout.activity_maps);
@@ -100,39 +101,9 @@ public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallba
             // The service is being created
             m_cLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-
-            //create markers
-            m_cMarkerBlueAlive = new MarkerOptions().position(new LatLng(0, 0)).snippet("Blue Force").title("Alive");
-            m_cMarkerBlueAlive.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_blue_48));
-            m_cMarkerBlueAlive.alpha(0.7f);
-
-            m_cMarkerBlueDestroyed = new MarkerOptions().position(new LatLng(0, 0)).snippet("Blue Force").title("Destroyed");
-            m_cMarkerBlueDestroyed.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_blue_x_48));
-            m_cMarkerBlueDestroyed.alpha(0.7f);
-
-            m_cMarkerRedAlive = new MarkerOptions().position(new LatLng(0, 0)).snippet("Red Force").title("Alive");
-            m_cMarkerRedAlive.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_red_48));
-            m_cMarkerRedAlive.alpha(0.7f);
-
-            m_cMarkerRedDestroyed = new MarkerOptions().position(new LatLng(0, 0)).snippet("Red Force").title("Destroyed");
-            m_cMarkerRedDestroyed.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_red_x_48));
-            m_cMarkerRedDestroyed.alpha(0.7f);
-
-
-          /*  m_cGoogleRedMarkerOptions = new MarkerOptions().position(new LatLng(0, 0)).snippet("Commander").title("Player 1");
-            m_cGoogleRedMarkerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-            m_cGoogleRedMarkerOptions.alpha(0.8f);
-
-            m_cGoogleBlueMarkerOptions = new MarkerOptions().position(new LatLng(0, 0)).snippet("Commander").title("Player 1");
-            m_cGoogleBlueMarkerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-            m_cGoogleBlueMarkerOptions.alpha(0.6f);
-            */
             // Init Firebase Data Members
-            CFirebaseUtil.openFirebaseReferenceByPlayerCurrentState("Global_Players_Current_State");
-            CFirebaseUtil.openFirebaseReferenceByPlayerHistoryState("Global_Players_History_State");
-            CFirebaseUtil.openFirebaseReferenceByEvent("Global_Events");
-            m_cFirebaseUtil = CFirebaseUtil.getFirebaseUtil();
-            m_cDatabaseCurrentPlayerStateReference = CFirebaseUtil.m_cDatabaseCurrentPlayerReference;
+            InitFireBase();
+
             m_btnPlayerRequestRevive  = (Button) findViewById(R.id.BtnRevive);
             if (m_btnPlayerRequestRevive != null)
             {
@@ -140,7 +111,7 @@ public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallba
                     @Override
                     public void onClick(View view)
                     {
-                        m_cFirebaseUtil.SendEvent(EventID.REVIVE, m_nLastPlayerID, "IOS");
+                        CFirebaseUtil.SendEvent(EventID.REVIVE, m_nLastPlayerID, nIOSPlayerID);
                     }
                 });
             }
@@ -151,7 +122,7 @@ public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallba
                     @Override
                     public void onClick(View view)
                     {
-                        m_cFirebaseUtil.SendEvent(EventID.RELOAD, m_nLastPlayerID, "IOS");
+                        CFirebaseUtil.SendEvent(EventID.RELOAD, m_nLastPlayerID, nIOSPlayerID);
                     }
                 });
             }
@@ -162,7 +133,7 @@ public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallba
                     @Override
                     public void onClick(View view)
                     {
-                        m_cFirebaseUtil.SendEvent(EventID.KILL, m_nLastPlayerID, "IOS");
+                        CFirebaseUtil.SendEvent(EventID.KILL, m_nLastPlayerID, nIOSPlayerID);
                     }
                 });
             }
@@ -197,86 +168,18 @@ public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallba
         m_bMapReady  = true;
         m_cGoogleMap.setOnMarkerClickListener(this);
 
+
         // ====================================================
         // Register To Database On Change
         // ====================================================
-        m_cChildEventListener = new ChildEventListener()
-        {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s)
-            {
-                CPlayerState cPlayerState = dataSnapshot.getValue(CPlayerState.class);
-                enumerateForceID enumForceID = cPlayerState.getEnumForceID();
-                eHealthState healthState = cPlayerState.getsPlayerState();
-                Marker cTempMarker = null;
-                MarkerOptions cTempMarkerOptions = null;
-                //create markers
-                cTempMarkerOptions = new MarkerOptions().position(new LatLng(cPlayerState.getPlayerLatitude(), cPlayerState.getPlayerLongitude())).title(cPlayerState.getPlayerIDStr());
-                cTempMarkerOptions.alpha(0.7f);
-                switch (enumForceID)
-                {
-                    case BLUE:
-                        if(healthState == eHealthState.ALIVE) {
-                            cTempMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_blue_48));
-                        }
-                        else if(healthState == eHealthState.KILLED ||eHealthState.HITTED == healthState) {
-                            cTempMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_blue_x_48));
-                        }
-                        break;
-                    case RED:
-                        if(healthState == eHealthState.ALIVE) {
-                            cTempMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_red_48));
-                        }
-                        else if(healthState == eHealthState.KILLED || eHealthState.HITTED == healthState) {
-                            cTempMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_red_x_48));
-                        }
-                        break;
-                }
-                cTempMarker = m_cGoogleMap.addMarker(cTempMarkerOptions);
-                if (null != cTempMarker)
-                {
-                    m_mapPlayerID2Marker.put(cPlayerState.getPlayerID(), cTempMarker);
-                    m_mapPlayerID2MarkerOptions.put(cPlayerState.getPlayerID(), cTempMarkerOptions);
-                    m_mapPlayerID2PlayerData.put(cPlayerState.getPlayerID(), cPlayerState);
-                    cTempMarker.showInfoWindow();
-                    cTempMarker.setPosition(new LatLng(cPlayerState.getPlayerLatitude(), cPlayerState.getPlayerLongitude()));
-                }
-                else
-                {
-                    Log.d("database", "onChildAdded: marker is null");
-                }
-            }
+        CurrentPlayerListener();
+        EventsListener();
+        //EventData eventData = new EventData(EventID.FIRE, 1,2, "TIME");
+        //CFirebaseUtil.SendFireEvent(1,2, "WEAPON", eHealthState.ALIVE);
 
 
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                // player state changed
-                CPlayerState cPlayerState = dataSnapshot.getValue(CPlayerState.class);
-
-                m_mapPlayerID2PlayerData.put(cPlayerState.getPlayerID(), cPlayerState);
-                Marker markerPlayer = m_mapPlayerID2Marker.get(cPlayerState.getPlayerID());
-                markerPlayer.showInfoWindow();
-                markerPlayer.setPosition(new LatLng(cPlayerState.getPlayerLatitude(), cPlayerState.getPlayerLongitude()));
 
 
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        };
-        m_cDatabaseCurrentPlayerStateReference.addChildEventListener(m_cChildEventListener);
     }
 
     private void OnUpdateOwnshipPositionOn2DMap(double latitude, double longitude)
@@ -287,15 +190,6 @@ public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallba
             m_cGoogleMarker.setPosition(currentPos);
         }
         m_cGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPos));
-    }
-
-    public void OnCreateNewMarker(double nLon, double nLat, float nMarger)
-    {
-        LatLng cLatLonPos = new LatLng(nLat, nLon);
-        m_cGoogleMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(nMarger)).position(cLatLonPos));
-        BitmapDescriptor bd = BitmapDescriptorFactory.fromResource(R.drawable.infantry_blue_48);
-        m_cGoogleMap.addMarker(new MarkerOptions().icon(bd).position(cLatLonPos));
-
     }
 
     @Override
@@ -334,17 +228,18 @@ public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallba
         while(it.hasNext())
         {
             Map.Entry<Integer, Marker> entry = it.next();
-            m_nLastPlayerID     = entry.getKey();
+
             Marker cPlayerMarker = entry.getValue();
             if (cMarker.equals(cPlayerMarker))
             {
+                m_nLastPlayerID     = entry.getKey();
                 // Get Player ID
-                CPlayerState cPlayerState = m_mapPlayerID2PlayerData.get(m_nLastPlayerID);
-                String sPlayerID = "Player ID : " + cPlayerState.getPlayerID();
-                m_cTextView_Player_ID.setText(sPlayerID);
-
-                // do to handle click here
-                // ...
+                if(m_mapPlayerID2PlayerData.containsKey(m_nLastPlayerID))
+                {
+                    CPlayerState cPlayerState = m_mapPlayerID2PlayerData.get(m_nLastPlayerID);
+                    String sPlayerID = "Player ID : " + cPlayerState.getPlayerID();
+                    m_cTextView_Player_ID.setText(sPlayerID);
+                }
             }
         }
         return false;
@@ -355,4 +250,221 @@ public class Activity2DMaps extends FragmentActivity implements OnMapReadyCallba
         CameraPosition cCameraPosition = new CameraPosition.Builder().target(new LatLng(dLat, dLon)).zoom(nZoomLevel).build();
         m_cGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cCameraPosition));
     }
+
+    void SetMarkerOptions(CPlayerState cPlayerState)
+    {
+        enumerateForceID enumForceID = cPlayerState.getEnumForceID();
+        eHealthState healthState = cPlayerState.getsPlayerState();
+        Marker cTempMarker = null;
+        MarkerOptions cTempMarkerOptions = null;
+        //create markers
+        if(m_mapPlayerID2MarkerOptions.containsKey(cPlayerState.getPlayerID()))
+        {
+            cTempMarkerOptions = m_mapPlayerID2MarkerOptions.get(cPlayerState.getPlayerID());
+        }
+        else {
+            cTempMarkerOptions = new MarkerOptions().position(new LatLng(cPlayerState.getPlayerLatitude(), cPlayerState.getPlayerLongitude())).title(cPlayerState.getPlayerIDStr());
+        }
+        cTempMarkerOptions.alpha(0.7f);
+        switch (enumForceID)
+        {
+            case BLUE:
+                if(healthState == eHealthState.ALIVE) {
+                    cTempMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_blue_48));
+                }
+                else if(healthState == eHealthState.KILLED ||eHealthState.HITTED == healthState) {
+                    cTempMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_blue_x_48));
+                }
+                break;
+            case RED:
+                if(healthState == eHealthState.ALIVE) {
+                    cTempMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_red_48));
+                }
+                else if(healthState == eHealthState.KILLED || eHealthState.HITTED == healthState) {
+                    cTempMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_red_x_48));
+                }
+                break;
+        }
+        cTempMarker = m_cGoogleMap.addMarker(cTempMarkerOptions);
+
+        if (null != cTempMarker)
+        {
+            m_mapPlayerID2Marker.put(cPlayerState.getPlayerID(), cTempMarker);
+            m_mapPlayerID2MarkerOptions.put(cPlayerState.getPlayerID(), cTempMarkerOptions);
+            m_mapPlayerID2PlayerData.put(cPlayerState.getPlayerID(), cPlayerState);
+            cTempMarker.showInfoWindow();
+            cTempMarker.setPosition(new LatLng(cPlayerState.getPlayerLatitude(), cPlayerState.getPlayerLongitude()));
+        }
+        else
+        {
+            Log.d("database", "onChildAdded: marker is null");
+        }
+    }
+
+    void ChangeIcon(CPlayerState cPlayerState)
+    {
+        enumerateForceID enumForceID = cPlayerState.getEnumForceID();
+        eHealthState healthState = cPlayerState.getsPlayerState();
+        Marker cTempMarker = null;
+        //create markers
+        if(m_mapPlayerID2Marker.containsKey(cPlayerState.getPlayerID()))
+        {
+            cTempMarker = m_mapPlayerID2Marker.get(cPlayerState.getPlayerID());
+        }
+        switch (enumForceID)
+        {
+            case BLUE:
+                if(healthState == eHealthState.ALIVE) {
+                    cTempMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_blue_48));
+                }
+                else if(healthState == eHealthState.KILLED ||eHealthState.HITTED == healthState) {
+                    cTempMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_blue_x_48));
+                }
+                break;
+            case RED:
+                if(healthState == eHealthState.ALIVE) {
+                    cTempMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_red_48));
+                }
+                else if(healthState == eHealthState.KILLED || eHealthState.HITTED == healthState) {
+                    cTempMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.soldier_icon_red_x_48));
+                }
+                break;
+        }
+        if (null != cTempMarker)
+        {
+            m_mapPlayerID2Marker.put(cPlayerState.getPlayerID(), cTempMarker);
+            m_mapPlayerID2PlayerData.put(cPlayerState.getPlayerID(), cPlayerState);
+            cTempMarker.showInfoWindow();
+            cTempMarker.setPosition(new LatLng(cPlayerState.getPlayerLatitude(), cPlayerState.getPlayerLongitude()));
+        }
+        else
+        {
+            Log.d("database", "onChildAdded: marker is null");
+        }
+    }
+
+    void CurrentPlayerListener()
+    {
+        m_cCurrentPlayersListener = new ChildEventListener()
+        {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s)
+            {
+                CPlayerState cPlayerState = dataSnapshot.getValue(CPlayerState.class);
+                SetMarkerOptions(cPlayerState);
+            }
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                // player state changed
+                CPlayerState cPlayerState = dataSnapshot.getValue(CPlayerState.class);
+                CPlayerState cOldPlayerState = m_mapPlayerID2PlayerData.get(cPlayerState.getPlayerID());
+                MarkerOptions markerOptions = null;
+                if(cOldPlayerState.getsPlayerState() != cPlayerState.getsPlayerState())
+                {
+                    ChangeIcon(cPlayerState);
+                }
+                else {
+                    m_mapPlayerID2PlayerData.put(cPlayerState.getPlayerID(), cPlayerState);
+                    Marker markerPlayer = m_mapPlayerID2Marker.get(cPlayerState.getPlayerID());
+                    markerPlayer.showInfoWindow();
+                    markerPlayer.setPosition(new LatLng(cPlayerState.getPlayerLatitude(), cPlayerState.getPlayerLongitude()));
+                }
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+        m_cDatabaseCurrentPlayerStateReference.addChildEventListener(m_cCurrentPlayersListener);
+    }
+
+    void EventsListener()
+    {
+        m_cEventsListener = new ChildEventListener()
+        {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s)
+            {
+                EventData cEvent = dataSnapshot.getValue(EventData.class);
+                switch (cEvent.getsEventID())
+                {
+                    case FIRE:
+                        DrawFireLine(cEvent);
+                        break;
+                }
+
+            }
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+        m_cDatabaseEventsReference.addChildEventListener(m_cEventsListener);
+    }
+
+    void InitFireBase()
+    {
+        CFirebaseUtil.openFirebaseReferenceByPlayerCurrentState(getString(R.string.Global_Player_Current_State));
+        CFirebaseUtil.openFirebaseReferenceByPlayerHistoryState(getString(R.string.Global_Players_History_State));
+        CFirebaseUtil.openFirebaseReferenceByEvent(getString(R.string.Global_Events));
+        m_cFirebaseUtil = CFirebaseUtil.getFirebaseUtil();
+        m_cDatabaseCurrentPlayerStateReference = CFirebaseUtil.m_cDatabaseCurrentPlayerReference;
+        m_cDatabaseEventsReference = CFirebaseUtil.m_cDataEventsRef;
+    }
+    void DrawFireLine(EventData eventData)
+    {
+        if(m_mapPlayerID2PlayerData.containsKey(eventData.getnOtherPlayerID())&& m_mapPlayerID2PlayerData.containsKey(eventData.getPlayerID()))
+        {
+            CPlayerState player1 = m_mapPlayerID2PlayerData.get(eventData.getPlayerID());
+            CPlayerState player2 = m_mapPlayerID2PlayerData.get(eventData.getnOtherPlayerID());
+
+            // Double HeadingRotation = SphericalUtil.computeHeading(LatLng from, LatLng to)
+            Polyline polyline1 = m_cGoogleMap.addPolyline(new PolylineOptions()
+                    .clickable(true).color(Color.RED).width(3)
+                    .add(
+                            new LatLng(player1.getPlayerLatitude(), player1.getPlayerLongitude()),
+                            new LatLng(player2.getPlayerLatitude(), player2.getPlayerLongitude())));
+            polyline1.setTag("Fire");
+
+            Runnable runnable = new Runnable(){
+                public void run() {
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        public void run() {
+                            polyline1.remove();
+                        }
+                    }, 10000);
+
+                }
+            };
+            runnable.run();
+        }
+    }
 }
+

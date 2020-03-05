@@ -20,7 +20,7 @@ public class CPlayerState implements Serializable
     private double nPlayerLongitude;
     private double nPlayerAltitude;
 
-    private String sExerciseID;
+    private int nExerciseID;
     private int nPlayerID; // harnes ID
     private String sPlayerID;
     private String sPlayerIMEI;
@@ -39,6 +39,7 @@ public class CPlayerState implements Serializable
     private String sPlayerLongitude;
     private String sPlayerAltitude;
     private String sMainWeapon;
+    private String sMainArmoType;
     private String sMainWeaponBullets;
     private String sSlaveWeapon;
     private String sSlaveWeaponBullets;
@@ -92,21 +93,16 @@ public class CPlayerState implements Serializable
         return sPlayerID;
     }
 
-    public void setPlayerIDStr(String sPlayerID) {
-        this.sPlayerID = sPlayerID;
-    }
-
-    public CPlayerState(String sExerciseID, int nID, eHealthState sState, double nLongitude, double nLatitude, double nAltitude, String forceID)
+    public CPlayerState(int nExerciseID, int nID, eHealthState sState, double nLongitude, double nLatitude, double nAltitude)
     {
-        this.sExerciseID = sExerciseID;
+        this.nExerciseID = nExerciseID;
         nPlayerID = nID;
         sPlayerState = sState;
         nPlayerLongitude = nLongitude;
         nPlayerLatitude = nLatitude;
         nPlayerAltitude = nAltitude;
-        this.sForceID = forceID;
         sPlayerID = String.valueOf(nPlayerID);
-        if(forceID == "BLUE")
+        if(nPlayerID %2 == 0)
         {
             this.enumForceID = enumerateForceID.BLUE;
         }
@@ -115,8 +111,26 @@ public class CPlayerState implements Serializable
         }
     }
 
-    public void setsExerciseID(String sExerciseID) {
-        this.sExerciseID = sExerciseID;
+    public CPlayerState(int nExerciseID, int nID, double nLatitude, double nLongitude, double nAltitude)
+    {
+        this.nExerciseID = nExerciseID;
+        nPlayerID = nID;
+        sPlayerState = eHealthState.ALIVE;
+        nPlayerLongitude = nLongitude;
+        nPlayerLatitude = nLatitude;
+        nPlayerAltitude = nAltitude;
+        sPlayerID = String.valueOf(nPlayerID);
+        if(nPlayerID %2 == 0)
+        {
+            this.enumForceID = enumerateForceID.BLUE;
+        }
+        else {
+            this.enumForceID = enumerateForceID.RED;
+        }
+    }
+
+    public void setnExerciseID(int nExerciseID) {
+        this.nExerciseID = nExerciseID;
     }
 
     public void setPlayerID(int playerID) {
@@ -153,8 +167,8 @@ public class CPlayerState implements Serializable
         this.sTimestramp = sTimestramp;
     }
 
-    public String getsExerciseID() {
-        return sExerciseID;
+    public int getnExerciseID() {
+        return nExerciseID;
     }
 
     public int getPlayerID() {
@@ -193,5 +207,12 @@ public class CPlayerState implements Serializable
 
     public String getsTimestramp() {
         return sTimestramp;
+    }
+    public String getsMainArmoType() {
+        return sMainArmoType;
+    }
+
+    public void setsMainArmoType(String sMainArmoType) {
+        this.sMainArmoType = sMainArmoType;
     }
 }

@@ -32,6 +32,8 @@ import android.widget.Button;
 
 //import com.felhr.usbserial.*;
 import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
@@ -56,6 +58,8 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+
+import org.jetbrains.annotations.Nullable;
 
 // =============================================================================================
 // CLASS MAIN ACTIVITY
@@ -132,6 +136,7 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
     private FirebaseDatabase m_cDatabaseUtil = null;
     private DatabaseReference m_cDatabaseCurrentPlayerStateReference = null;
     private DatabaseReference m_cDatabaseHistoryPlayerStateReference = null;
+    private DatabaseReference m_cDatabaseEventsReference = null;
     private ChildEventListener m_cChildEventListener = null;
 
     // =============================================================================================
@@ -208,8 +213,6 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
     // Location Data Members
     // =============================================================================================    
     private LocationManager          m_cLocationManager   = null;
-    private double                   m_cLocationLatitude  = 0;
-    private double                   m_cLocationLongitude = 0;
     private long                     m_cLocationTime      = 0;
     private DateFormat               m_cDateFormat        = new SimpleDateFormat("HH:mm:ss");    
 
@@ -305,11 +308,12 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
         setSupportActionBar(toolbar);
 
         // Init Firebase Data Members
-        CFirebaseUtil.openFirebaseReferenceByPlayerCurrentState("Global_Players_Current_State");
-        CFirebaseUtil.openFirebaseReferenceByPlayerHistoryState("Global_Players_History_State");
+        CFirebaseUtil.openFirebaseReferenceByPlayerCurrentState(getString(R.string.Global_Player_Current_State));
+        CFirebaseUtil.openFirebaseReferenceByPlayerHistoryState(getString(R.string.Global_Players_History_State));
+        CFirebaseUtil.openFirebaseReferenceByEvent(getString(R.string.Global_Events));
         m_cDatabaseUtil = CFirebaseUtil.m_cFirebaseDatabase;
         m_cDatabaseCurrentPlayerStateReference = CFirebaseUtil.m_cDatabaseCurrentPlayerReference;
-        m_cDatabaseHistoryPlayerStateReference = CFirebaseUtil.m_cDatabaseHistoryPlayerReference;
+        m_cDatabaseEventsReference = CFirebaseUtil.m_cDataEventsRef;
 
         // Join Buttons
         m_btnPlayerConfig         = (Button) findViewById(R.id.btnDoPlayerConfig);
@@ -500,7 +504,7 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
                     try
                     {
                         // Elbit Netanya => Latitude=32.288389,Longitude=34.864182
-                        String sExerciseID      = "1";
+                        int nExerciseID      = 1;
                         int    nPlayerID        = 1;
                         eHealthState ePlayerState     = eHealthState.ALIVE;
                         double sPlayerLongitude = 34.864182;
@@ -509,14 +513,12 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
                         String sMainWeapon      = "M-16";
                         String sSlaveWeaponBullets = "29";
                         String sTimestramp =        "12:00:00";
-                        String sforceID = "BLUE";
-                        String [] arrayForce = {"BLUE", "BLUE", "RED", "RED"};
                         eHealthState [] arraylife = {eHealthState.ALIVE, eHealthState.HITTED, eHealthState.ALIVE,  eHealthState.HITTED};
                         int nMaxPlayers = 4;
                         for (int i = 0; i < nMaxPlayers; i++)
                         {
-                            m_cLastPlayerState = new CPlayerState(sExerciseID, nPlayerID + i, arraylife[i], sPlayerLongitude + i, sPlayerLatitude + i, sPlayerAltitude, arrayForce[i]);
-                            CPlayerState cPlayerState = new CPlayerState(sExerciseID, nPlayerID + i, arraylife[i], sPlayerLongitude + i, sPlayerLatitude + i, sPlayerAltitude, arrayForce[i]);
+                            m_cLastPlayerState = new CPlayerState(nExerciseID, nPlayerID + i, arraylife[i], sPlayerLongitude + i, sPlayerLatitude + i, sPlayerAltitude);
+                            CPlayerState cPlayerState = new CPlayerState(nExerciseID, nPlayerID + i, arraylife[i], sPlayerLongitude + i, sPlayerLatitude + i, sPlayerAltitude);
                             if (m_cDatabaseCurrentPlayerStateReference != null)
                             {
                                 m_cDatabaseCurrentPlayerStateReference.child(cPlayerState.getPlayerIDStr()).setValue(cPlayerState);
@@ -547,7 +549,10 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
                 @Override
                 public void onClick(View view)
                 {
-                    if (m_cLastPlayerState != null) {
+                    CPlayerRequest.m_bPlayerRequestRevive = true;
+
+                    if (m_cLastPlayerState != null)
+                    {
                         m_cLastPlayerState.setsPlayerState(eHealthState.ALIVE);
                         CFirebaseUtil.UpdatePlayerState(m_cLastPlayerState);
 
@@ -569,6 +574,7 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
                 @Override
                 public void onClick(View view)
                 {
+                    CPlayerRequest.m_bPlayerRequestDestroy = true;
                     if (m_cLastPlayerState != null)
                         m_cLastPlayerState.setsPlayerState(eHealthState.KILLED);
                     Toast.makeText(view.getContext(), "Player Killed ...", Toast.LENGTH_LONG).show();
@@ -586,6 +592,7 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
                 @Override
                 public void onClick(View view)
                 {
+                    CPlayerRequest.m_bPlayerRequestReloadWeaponAmmo = true;
                     Toast.makeText(view.getContext(), "Reload Ammo ...", Toast.LENGTH_LONG).show();
                 }
             });
@@ -631,13 +638,32 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
             });
         }
 
-        /* Register To Database Change
+        // Register To Database Change
         m_cChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s)
             {
-                try {
-                    CPlayerState cPlayerState = dataSnapshot.getValue(CPlayerState.class);
+                try
+                {
+                    EventData cEventData = dataSnapshot.getValue(EventData.class);
+                    if(m_nMessageDataFromCCU_HarnessID == cEventData.getPlayerID())
+                    {
+                        switch (cEventData.getsEventID())
+                        {
+                            case KILL:
+                                CPlayerRequest.m_bPlayerRequestDestroy = true;
+                                break;
+                            case RELOAD:
+                                CPlayerRequest.m_bPlayerRequestReloadAmmo = true;
+                                CPlayerRequest.m_bPlayerRequestReloadWeaponAmmo = true;
+                                break;
+                            case REVIVE:
+                                CPlayerRequest.m_bPlayerRequestRevive = true;
+                                break;
+
+                        }
+                    }
+
                 }
                 catch(Exception e) {
 
@@ -665,8 +691,58 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
 
             }
         };
-        m_cDatabaseCurrentPlayerStateReference.addChildEventListener(m_cChildEventListener);*/
+        m_cDatabaseEventsReference.addChildEventListener(m_cChildEventListener);
     }
+
+    private void UpdatPlayerNewState()
+    {
+
+        if(m_cLastPlayerState == null)
+        {
+            //(String sExerciseID, int nID, double nLongitude, double nLatitude, double nAltitude, String forceID)
+            m_cLastPlayerState = new CPlayerState(m_nMessageDataFromCCU_ExerciseID, m_nMessageDataFromCCU_HarnessID, CGlobalGpsState.m_nLatitude, CGlobalGpsState.m_nLongitude,CGlobalGpsState.m_nAltitude);
+        }
+        else
+        {
+            m_cLastPlayerState.setPlayerLatitude(CGlobalGpsState.m_nLatitude);
+            m_cLastPlayerState.setPlayerLongitude(CGlobalGpsState.m_nLongitude);
+            m_cLastPlayerState.setPlayerAltitude(CGlobalGpsState.m_nAltitude);
+        }
+
+        if (m_eMessageDataFromCCU_HealthState == PLAYER_HEALTH_STATE_AS_INJURED)
+        {
+            m_cLastPlayerState.setsPlayerState(eHealthState.HITTED);
+        }
+        else if (m_eMessageDataFromCCU_HealthState == PLAYER_HEALTH_STATE_AS_KILLED)
+        {
+            m_cLastPlayerState.setsPlayerState(eHealthState.KILLED);
+        }
+        else
+        {
+            m_cLastPlayerState.setsPlayerState(eHealthState.ALIVE);
+        }
+        String sWeaponType =  "" + m_eMessageDataFromCCU_WeaponType;
+        String sAmmoType = "" + m_eMessageDataFromCCU_AmmoType;
+        String sWcurrentArmoVal = "" + m_nMessageDataFromCCU_CurrentAmmoVal;
+        m_cLastPlayerState.setsMainWeapon(sWeaponType);
+        m_cLastPlayerState.setsMainArmoType(sAmmoType);
+        m_cLastPlayerState.setsMainWeaponBullets(sWcurrentArmoVal);
+       /* if(m_cLastPlayerState.getPlayerID()%2 == 0)
+            m_cLastPlayerState.setEnumForceID(enumerateForceID.BLUE);
+        else
+            m_cLastPlayerState.setEnumForceID(enumerateForceID.RED);
+        */
+        CFirebaseUtil.UpdatePlayerState(m_cLastPlayerState);
+        //send an event fire in a case hited (3 means hitted)
+        if(m_eMessageDataFromCCU_HitType == 3)
+        {
+            //SendFireEvent(int nAttackerID, int nHittedID, String weaponType, eHealthState healthState)
+            String sHitMunition = "" + m_nMessageDataFromCCU_LastHitMunitionTypeID;
+            CFirebaseUtil.SendFireEvent(m_nMessageDataFromCCU_LastAttackerHarnessID, m_nMessageDataFromCCU_HarnessID, sHitMunition,m_cLastPlayerState.getsPlayerState());
+        }
+
+    }
+
 
     private void openCameraIntent()
     {
@@ -1013,7 +1089,7 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
 
                                 // Write Data To Serial Comm Port
                                 CGlobalGpsState.UpdateSystemCounter(m_cSerialCommPortSendGoodMessageToCCUCounter);
-                                final int nRealSendDataSize = m_cSerialCommPort.write(m_cMessageFromMobile.CreateMsgFrPhone(new Date(m_cLocationTime), m_cLocationLatitude, m_cLocationLongitude), 1000);
+                                final int nRealSendDataSize = m_cSerialCommPort.write(m_cMessageFromMobile.CreateMsgFrPhone(new Date(m_cLocationTime)), 1000);
                                 if (nRealSendDataSize == 49)
                                 {
                                     Log.d("Debug", "Send Success Message To CCU ...");
@@ -1128,6 +1204,10 @@ public class ActivityMain extends AppCompatActivity implements LocationListener
                                                     m_nMessageDataFromCCU_PU_BatteryPower       = CMessageHandlerUtil.GetU8(m_byteSerialCommPortReadDataBufferFromCCU,  CrtOffset);CrtOffset+=1;    // Percent
                                                     m_nMessageDataFromCCU_HB_BatteryPower       = CMessageHandlerUtil.GetU8(m_byteSerialCommPortReadDataBufferFromCCU,  CrtOffset);CrtOffset+=1;    // Percent
                                                     m_nMessageDataFromCCU_LE1_BatteryPower      = CMessageHandlerUtil.GetU8(m_byteSerialCommPortReadDataBufferFromCCU,  CrtOffset);CrtOffset+=1;    // Percent
+
+
+                                                    // Update player state to database tomer
+                                                    UpdatPlayerNewState();
 
                                                     BuildPlayerTypeString(m_eMessageDataFromCCU_SenderType, m_nMessageDataFromCCU_HarnessID);
                                                     BuildPlayerHealthStateString(m_eMessageDataFromCCU_HealthState, m_eMessageDataFromCCU_HitType, m_eMessageDataFromCCU_HitLocation, m_nMessageDataFromCCU_LastAttackerHarnessID);

@@ -83,24 +83,21 @@ public class CFirebaseUtil
     }
 
 
-    public void SendEvent(EventID eEventID, int sPlayerID, String sPlayerFrom)
+    public static void SendEvent(EventID eEventID, int nPlayerID, int nPlayerFrom)
     {
         ArrayList<String> params = new ArrayList<String>();
-        String sTime = "time";
-        params.add(sTime);
-        params.add(sPlayerFrom);
-
-        EventData cEventData = new EventData(eEventID, sPlayerID, params);
+        params.add(CGlobalGpsState.m_sTime);
+        EventData cEventData = new EventData(eEventID, nPlayerID, params);
+        cEventData.setOtherPlayerID(nPlayerFrom);
         m_cDataEventsRef.push().setValue(cEventData);
     }
-    public void SendFireEvent(int nPlayerID, String sLat, String sLong, String sAlt, String weaponType)
+    public static void SendFireEvent(int nAttackerID, int nHittedID, String weaponType, eHealthState healthState)
     {
-        EventData cFireData = new EventData();
-        cFireData.setsPlayerID(nPlayerID);
-        cFireData.setEventID(EventID.FIRE);
-        String sTime = "time";
-        ArrayList<String> stringArrayList = new ArrayList<String>(Arrays.asList(sTime, sLat, sLong, sAlt, weaponType));
-     //   m_cDataFireRef.push().setValue(cFireData);
+        EventData cFireData = new EventData(EventID.FIRE, nHittedID, nAttackerID, CGlobalGpsState.m_sTime);
+        cFireData.getvEventParams().add(weaponType);
+        cFireData.getvEventParams().add(healthState.toString());
+        m_cDataEventsRef.push().setValue(cFireData);
+
     }
 
 }

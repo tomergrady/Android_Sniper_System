@@ -25,7 +25,7 @@ public class CMessageFromMobile
         byteArr[bytePos+3] = (byte)((Val >> 24) & 0xFF);
     }
 
-    public static byte[] CreateMsgFrPhone(Date date, double lat, double lon)
+    public static byte[] CreateMsgFrPhone(Date date/*, double lat, double lon*/)
     {
         Calendar c = Calendar.getInstance();
         c.setTime(date);
@@ -93,13 +93,27 @@ public class CMessageFromMobile
         MsgCnt++;
         // byteArr[6 - 11] // Not used for now
 
+        // test mode
+        //CPlayerRequest.m_bPlayerRequestDestroy = true;
+
         // ===============================================================
         //                              Set Body Message
         // ===============================================================
         // Set Validity Bit Mask
         int   nByteOffset = 12;
+
         short nValidityBitMask = 0x01;
-        SetS16(byteArr, nByteOffset, nValidityBitMask);
+        if (CPlayerRequest.m_bPlayerRequestReloadWeaponAmmo == true)
+            nValidityBitMask = (short)(nValidityBitMask | 0x04); // request player update weapon + ammo
+        else if (CPlayerRequest.m_bPlayerRequestReloadAmmo == true)
+            nValidityBitMask = (short)(nValidityBitMask | 0x08);  // request player update ammo
+        else if (CPlayerRequest.m_bPlayerRequestRevive == true)
+            nValidityBitMask = (short)(nValidityBitMask | 0x02); // request player revive
+        else if (CPlayerRequest.m_bPlayerRequestDestroy == true)
+            nValidityBitMask = (short)(nValidityBitMask | 0x02); // request player destroy
+        else
+            nValidityBitMask = 0x01;
+        SetS16(byteArr, nByteOffset, nValidityBitMask); // validety bit ok
         nByteOffset = nByteOffset + 16/8;
 
         // Set Harness ID
@@ -144,6 +158,10 @@ public class CMessageFromMobile
 
         // Set Health State
         byte nHealthState = 0;
+        if (CPlayerRequest.m_bPlayerRequestRevive == true)
+            nHealthState = 1;
+        else if (CPlayerRequest.m_bPlayerRequestDestroy == true)
+            nHealthState = 3; // 2 or 3
         SetS8(byteArr, nByteOffset, nHealthState);
         nByteOffset = nByteOffset + 8/8;
 
@@ -169,12 +187,21 @@ public class CMessageFromMobile
 
         // Set Current Ammo Val
         short nCurrentAmmoVal = 0;
+        if ((CPlayerRequest.m_bPlayerRequestReloadWeaponAmmo == true) || (CPlayerRequest.m_bPlayerRequestReloadAmmo == true))
+            nCurrentAmmoVal = 30;
         SetS16(byteArr, nByteOffset, nCurrentAmmoVal);
         nByteOffset = nByteOffset + 16/8;
 
         if (nByteOffset != nFullMessageSize)
             System.out.println("Error Size of Mobile Message !!!");
         
+        // Clear Flags
+        CPlayerRequest.m_bPlayerRequestReloadWeaponAmmo = false;
+        CPlayerRequest.m_bPlayerRequestDestroy          = false;
+        CPlayerRequest.m_bPlayerRequestRevive           = false;
+        CPlayerRequest.m_bPlayerRequestDestroy          = false;
+
+
         return byteArr;
     }
 }

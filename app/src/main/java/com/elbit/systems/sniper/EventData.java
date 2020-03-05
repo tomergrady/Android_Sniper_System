@@ -12,8 +12,27 @@ enum EventID {
 public class EventData {
 
     private EventID sEventID;
-    private int sPlayerID;
+    private int nPlayerID; // the Player sent an event
+    private int nOtherPlayerID; // second player relevant
+    private String sTime;
     private ArrayList<String> vEventParams;
+
+    public EventData() { }
+
+    public EventData(EventID sEventID, int nPlayerID,  int nOtherPlayerID, String sTime) {
+        this.sEventID = sEventID;
+        this.nPlayerID = nPlayerID;
+        this.nOtherPlayerID = nOtherPlayerID;
+        this.sTime = sTime;
+        this.vEventParams = new ArrayList<String>();
+    }
+
+    public EventData(EventID sEventID, int nPlayerID, ArrayList<String> vEventParams) {
+        this.sEventID = sEventID;
+        this.nPlayerID = nPlayerID;
+        this.vEventParams = vEventParams;
+    }
+
 
     public EventID getsEventID() {
         return sEventID;
@@ -31,20 +50,30 @@ public class EventData {
         this.vEventParams = vEventParams;
     }
 
-    public EventData(EventID sEventID, int nPlayerID, ArrayList<String> vEventParams) {
-        this.sEventID = sEventID;
-        this.sPlayerID = sPlayerID;
-        this.vEventParams = vEventParams;
-    }
-    public EventData()
-    {
+    public int getPlayerID() {
+        return nPlayerID;
     }
 
-    public int getsPlayerID() {
-        return sPlayerID;
+    public void setPlayerID(int nPlayerID) {
+        this.nPlayerID = nPlayerID;
     }
 
-    public void setsPlayerID(int sPlayerID) {
-        this.sPlayerID = sPlayerID;
+
+
+
+    public int getnOtherPlayerID() {
+        return nOtherPlayerID;
+    }
+
+    public void setOtherPlayerID(int nOtherPlayerID) {
+        this.nOtherPlayerID = nOtherPlayerID;
+    }
+
+    public String getsTime() {
+        return sTime;
+    }
+
+    public void setsTime(String sTime) {
+        this.sTime = sTime;
     }
 }
