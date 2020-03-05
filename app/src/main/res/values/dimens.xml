@@ -1,0 +1,5 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="map_details_col_1_end_marging">320dp</dimen>
+    <dimen name="map_details_col_2_end_marging">280dp</dimen>
+</resources>

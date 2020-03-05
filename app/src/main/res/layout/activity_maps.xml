@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layoutDirection="ltr"
+    tools:context=".Activity2DMaps">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight=".2">
+
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="0dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginRight="0dp"
+            tools:context=".Activity2DMaps" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight=".8"
+        android:layoutDirection="ltr">
+
+        <Button
+            android:id="@+id/BtnRevive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="7dp"
+            android:layout_marginBottom="12dp"
+            android:text="Revive" />
+
+        <Button
+            android:id="@+id/BtnRequestKillByIOS"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="11dp"
+            android:layout_toEndOf="@+id/BtnRevive"
+            android:text="Kill" />
+
+        <Button
+            android:id="@+id/BtnReload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="14dp"
+            android:layout_marginBottom="9dp"
+            android:layout_toEndOf="@+id/BtnRequestKillByIOS"
+            android:text="Reload" />
+
+        <TextView
+            android:id="@+id/PlayerIDTextView"
+            android:layout_width="138dp"
+            android:layout_height="17dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="200dp"
+            android:layout_marginBottom="0dp"
+            android:text=" Player ID: ####" />
+
+        <TextView
+            android:id="@+id/PlayerRoleIDTextView"
+            android:layout_width="138dp"
+            android:layout_height="17dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="200dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginBottom="0dp"
+            android:text=" Player Role ID: ####" />
+
+        <TextView
+            android:id="@+id/PlayerStateTextView"
+            android:layout_width="200dp"
+            android:layout_height="17dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="200dp"
+            android:layout_marginBottom="0dp"
+            android:text=" Player State: ####" />
+
+        <TextView
+            android:id="@+id/PlayerBatteryStatusTextView"
+            android:layout_width="138dp"
+            android:layout_height="17dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="200dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginBottom="0dp"
+            android:text=" Player Battery Status: ####" />
+
+        <TextView
+            android:id="@+id/PlayerMainWeaponTextView"
+            android:layout_width="138dp"
+            android:layout_height="17dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginEnd="200dp"
+            android:layout_marginBottom="0dp"
+            android:text=" Player Main Weapon: ####" />
+
+        <TextView
+            android:id="@+id/PlayerExtra01TextView"
+            android:layout_width="138dp"
+            android:layout_height="17dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="200dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginEnd="3dp"
+            android:layout_marginBottom="0dp"
+            android:text=" Player Extra 01: ####" />
+
+        <TextView
+            android:id="@+id/PlayerSlaveWeaponTextView"
+            android:layout_width="138dp"
+            android:layout_height="17dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="200dp"
+            android:layout_marginBottom="0dp"
+            android:text=" Player Slave Weapon: ####" />
+
+        <TextView
+            android:id="@+id/PlayerExtra02TextView"
+            android:layout_width="138dp"
+            android:layout_height="17dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="200dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="3dp"
+            android:layout_marginBottom="0dp"
+            android:text=" Player Extra 02: ####" />
+
+        <TextView
+            android:id="@+id/PlayerExtra03TextView"
+            android:layout_width="138dp"
+            android:layout_height="17dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="80dp"
+            android:layout_marginEnd="200dp"
+            android:layout_marginBottom="0dp"
+            android:text=" Player Extra 03: ####" />
+
+        <TextView
+            android:id="@+id/PlayerExtra04TextView"
+            android:layout_width="138dp"
+            android:layout_height="17dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="200dp"
+            android:layout_marginTop="80dp"
+            android:layout_marginEnd="3dp"
+            android:layout_marginBottom="0dp"
+            android:text=" Player Extra 04: ####" />
+
+    </RelativeLayout>
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>

@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="2dp"
+    android:layout_marginRight="2dp"
+    android:layoutDirection="ltr"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.elbit.systems.sniper.ActivityMain"
+    tools:layout_editor_absoluteY="56dp"
+    tools:showIn="@layout/activity_main">
+
+    <Button
+        android:id="@+id/btnDoViewOn2DMap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="4dp"
+        android:text="2DMap"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnDoPlayerConfig" />
+
+    <Button
+        android:id="@+id/btnDoPlayerConfig"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="4dp"
+        android:text="Config"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnDoNotificationToIOS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="4dp"
+        android:text="REPORT"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnDoViewOn2DMap" />
+
+    <Button
+        android:id="@+id/btnDoShowPlayerHistory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="4dp"
+        android:text="HISTORY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnDoNotificationToIOS" />
+
+    <TextView
+        android:id="@+id/TextView_SystemViewLog"
+        android:layout_width="392dp"
+        android:layout_height="111dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:background="@android:color/holo_green_dark"
+        android:textColor="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_SystemLogHistory" />
+
+    <TextView
+        android:id="@+id/TextView_VestCommStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Vest Status:  No USB Connection"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="20dp" />
+
+    <TextView
+        android:id="@+id/TextView_CentralStationCommStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Central Station Status:  No Connection"
+        app:layout_constraintStart_toStartOf="@+id/TextView_VestCommStatus"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_VestCommStatus" />
+
+    <TextView
+        android:id="@+id/TextView_GPSStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="GPS Status:  No Valid"
+        app:layout_constraintStart_toStartOf="@+id/TextView_CentralStationCommStatus"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_CentralStationCommStatus" />
+
+    <TextView
+        android:id="@+id/TextView_Exercise_ID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Exercise ID:  ###"
+        app:layout_constraintStart_toStartOf="@+id/TextView_GPSStatus"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_GPSStatus" />
+
+    <TextView
+        android:id="@+id/TextView_Player_ID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Player ID:  ###"
+        app:layout_constraintStart_toStartOf="@+id/TextView_Exercise_ID"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_Exercise_ID" />
+
+    <TextView
+        android:id="@+id/TextView_GPSLat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="GPS Lat:  ##.######"
+        app:layout_constraintStart_toStartOf="@+id/TextView_GPSLon"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_GPSLon" />
+
+    <TextView
+        android:id="@+id/TextView_GPSAlt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="GPS Altitude:  ##.##"
+        app:layout_constraintStart_toStartOf="@+id/TextView_GPSLat"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_GPSLat" />
+
+    <TextView
+        android:id="@+id/TextView_GPSTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="GPS Time: ##:##:##"
+        app:layout_constraintStart_toStartOf="@+id/TextView_GPSAlt"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_GPSAlt" />
+
+    <TextView
+        android:id="@+id/TextView_GPSLon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="GPS Lon:  ##.######"
+        app:layout_constraintStart_toStartOf="@+id/TextView_Player_ID"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_Player_ID" />
+
+    <TextView
+        android:id="@+id/TextView_HealthStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Health Status: #########"
+        app:layout_constraintStart_toStartOf="@+id/TextView_GPSTime"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_GPSTime" />
+
+    <TextView
+        android:id="@+id/TextView_MainWeaponStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Main Weapon: XXXX Ammo Amout ##/##"
+        app:layout_constraintStart_toStartOf="@+id/TextView_HealthStatus"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_HealthStatus" />
+
+    <TextView
+        android:id="@+id/TextView_SlaveWeaponStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Slave Weapon: XXXX Ammo Amout ##/##"
+        app:layout_constraintStart_toStartOf="@+id/TextView_MainWeaponStatus"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_MainWeaponStatus" />
+
+    <TextView
+        android:id="@+id/TextView_BatteryStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Battery Status: ###%"
+        app:layout_constraintStart_toStartOf="@+id/TextView_SlaveWeaponStatus"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_SlaveWeaponStatus" />
+
+    <TextView
+        android:id="@+id/TextView_SystemLogHistory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textStyle="bold|normal"
+        android:text="System Log:"
+        app:layout_constraintStart_toStartOf="@+id/TextView_BatteryStatus"
+        app:layout_constraintTop_toBottomOf="@+id/TextView_BatteryStatus" />
+
+    <TextView
+        android:id="@+id/TextView_CCULastMessageStatus"
+        android:layout_width="296dp"
+        android:layout_height="19dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="4dp"
+        android:textStyle="bold|normal"
+        android:text="No Communication with CCU"
+        app:layout_constraintBottom_toTopOf="@+id/TextView_SystemViewLog"
+        app:layout_constraintStart_toEndOf="@+id/TextView_SystemLogHistory" />
+
+    <Button
+        android:id="@+id/btnPlayerRequestSaveState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="Save"
+        app:layout_constraintBottom_toTopOf="@+id/btnDoPlayerConfig"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnPlayerRequestRevive"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Revive"
+        app:layout_constraintBottom_toTopOf="@+id/btnDoViewOn2DMap"
+        app:layout_constraintStart_toEndOf="@+id/btnPlayerRequestSaveState" />
+
+    <Button
+        android:id="@+id/btnPlayerRequestDestroy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="8dp"
+        android:text="Destroy"
+        app:layout_constraintBottom_toTopOf="@+id/btnDoNotificationToIOS"
+        app:layout_constraintStart_toEndOf="@+id/btnPlayerRequestRevive" />
+
+    <Button
+        android:id="@+id/btnPlayerRequestReloadAmmo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Reload"
+        app:layout_constraintBottom_toTopOf="@+id/btnDoShowPlayerHistory"
+        app:layout_constraintStart_toEndOf="@+id/btnPlayerRequestDestroy" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="Add CGF"
+        app:layout_constraintBottom_toTopOf="@+id/btnPlayerRequestSaveState"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Button"
+        app:layout_constraintBottom_toTopOf="@+id/btnPlayerRequestRevive"
+        app:layout_constraintStart_toEndOf="@+id/button" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="8dp"
+        android:text="Button"
+        app:layout_constraintBottom_toTopOf="@+id/btnPlayerRequestDestroy"
+        app:layout_constraintStart_toEndOf="@+id/button2" />
+
+    <Button
+        android:id="@+id/btnTakePlayerCapture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="8dp"
+        android:text="CAPTURE"
+        app:layout_constraintBottom_toTopOf="@+id/btnPlayerRequestReloadAmmo"
+        app:layout_constraintStart_toEndOf="@+id/button3" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
